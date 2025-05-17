@@ -1,153 +1,151 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 
-const Register: React.FC = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'candidato' | 'reclutador'>('candidato');
-  const [specialty, setSpecialty] = useState('');
-  const [about, setAbout] = useState('');
+export default function Register() {
+  const [userType, setUserType] = useState("candidato");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const specialties = [
+    "Frontend",
+    "Backend",
+    "Fullstack",
+    "UX/UI",
+    "Data Science",
+    "DevOps",
+    "QA",
+    "Mobile",
+  ];
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !email || !password) {
-      alert('Por favor completa todos los campos obligatorios.');
-      return;
-    }
-
-    if (role === 'candidato' && !specialty) {
-      alert('Por favor selecciona tu especialidad.');
-      return;
-    }
-
-    const userData = {
-      name,
+    const body = {
       email,
       password,
-      role,
-      ...(role === 'candidato' && { specialty, about }),
+      userType,
     };
 
-    console.log('Usuario registrado:', userData);
-    
+    try {
+      const res = await fetch("http://localhost:3001/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        alert("Error: " + error.message);
+        return;
+      }
+
+      alert("Registro exitoso. Ahora puedes iniciar sesión.");
+      window.location.href = "/login";
+    } catch (err) {
+      alert("Error de red al registrar");
+      console.error(err);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-lg"
-      >
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
+      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Registro</h2>
 
-        <label className="block mb-2">Nombre completo</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full p-2 mb-4 border rounded"
-        />
-
-        <label className="block mb-2">Correo electrónico</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 mb-4 border rounded"
-        />
-
-        <label className="block mb-2">Contraseña</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 mb-4 border rounded"
-        />
-
-        <label className="block mb-2">Tipo de cuenta</label>
-        <div className="flex gap-4 mb-4">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="candidato"
-              checked={role === 'candidato'}
-              onChange={() => setRole('candidato')}
-              className="mr-2"
-            />
-            Candidato
+        <form onSubmit={handleRegister}>
+          {/* Selector de tipo de usuario */}
+          <label className="block mb-2 text-sm font-medium">
+            Tipo de usuario:
           </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="reclutador"
-              checked={role === 'reclutador'}
-              onChange={() => setRole('reclutador')}
-              className="mr-2"
-            />
-            Reclutador
-          </label>
-        </div>
+          <select
+            value={userType}
+            onChange={(e) => setUserType(e.target.value)}
+            className="w-full p-2 mb-1 border rounded"
+          >
+            <option value="empresa">🏢 Empresa</option>
+            <option value="reclutador">👤 Reclutador</option>
+            <option value="candidato">🧑‍💻 Candidato</option>
+          </select>
 
-        {/* Campos adicionales si es candidato */}
-        {role === 'candidato' && (
-          
-           
-  <>
-    <label className="block mb-2">Especialidad</label>
-    <select
-      value={specialty}
-      onChange={(e) => setSpecialty(e.target.value)}
-      className="w-full p-2 mb-4 border rounded"
-    >
-      <option value="">Selecciona una opción</option>
-      {[
-        "Frontend",
-        "Backend",
-        "Fullstack",
-        "DevOps",
-        "QA",
-        "UX/UI",
-        "Mobile",
-        "Data Engineer",
-        "Data Scientist",
-        "AI/ML",
-        "Cloud",
-        "Game Developer",
-        "Security",
-        "Otro",
-      ].map((option) => (
-        <option key={option} value={option.toLowerCase()}>
-          {option}
-        </option>
-      ))}
-    </select>
+          {/* Campos comunes */}
+          <input
+            type="text"
+            placeholder="Nombre completo o nombre de usuario"
+            className="w-full p-2 mb-4 border rounded"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <input
+            type="email"
+            placeholder="Correo electrónico"
+            className="w-full p-2 mb-4 border rounded"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            className="w-full p-2 mb-4 border rounded"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-    <label className="block mb-2">Sobre ti (opcional)</label>
-    <textarea
-      value={about}
-      onChange={(e) => setAbout(e.target.value)}
-      className="w-full p-2 mb-4 border rounded resize-none"
-      rows={3}
-      placeholder="En pocas palabras para mostrar bajo tu perfil"
-    />
-  </>
-)}
+          {/* Descripción dinámica según tipo de usuario */}
+          {userType === "empresa" && (
+            <>
+              <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-700 p-2 mb-4 text-sm rounded">
+                <strong>🏢 Empresa:</strong> eres una organización que desea
+                publicar ofertas directamente en nombre propio.
+              </div>
+              <input
+                type="text"
+                placeholder="Nombre de la empresa"
+                className="w-full p-2 mb-4 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Rubro o industria"
+                className="w-full p-2 mb-4 border rounded"
+              />
+            </>
+          )}
 
+          {userType === "reclutador" && (
+            <>
+              <div className="bg-indigo-50 border-l-4 border-indigo-400 text-indigo-700 p-2 mb-4 text-sm rounded">
+                <strong>👤 Reclutador:</strong> eres un profesional que publica
+                ofertas y filtra candidatos para una o más empresas.
+              </div>
+              <input
+                type="text"
+                placeholder="Empresa/agencia para la que reclutas"
+                className="w-full p-2 mb-4 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Cargo o posición"
+                className="w-full p-2 mb-4 border rounded"
+              />
+            </>
+          )}
 
-           
-         
-        
+          {userType === "candidato" && (
+            <div className="bg-green-50 border-l-4 border-green-400 text-green-700 p-2 mb-4 text-sm rounded">
+              <strong>🧑‍💻 Candidato:</strong> buscas empleo y deseas postularte a
+              ofertas que se ajusten a tu perfil.
+            </div>
+          )}
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Registrarse
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
+          >
+            Registrarse
+          </button>
+        </form>
+      </div>
     </div>
   );
-};
-
-export default Register;
+}
